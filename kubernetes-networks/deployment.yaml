@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homework-deployment
+  namespace: homework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: homework-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: homework-pod
+    spec:
+      volumes:
+        - name: shared-volume
+          emptyDir: {}
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+      initContainers:
+        - name: init-container
+          image: busybox
+          command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /homework
+      containers:
+        - name: web-server
+          image: nginx
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /homework
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/sh", "-c", "rm /homework/index.html"]
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/homework/index.html"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+      restartPolicy: Always
+
