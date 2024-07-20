@@ -37,8 +37,8 @@ homework   Active   24m```
 kubectl get pvc -n homework
 kubectl describe pvc homework-pvc -n homework
 
-```
 user@test:~/otus/kubernetes-volumes$ kubectl get pvc -n homework
+
 NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 homework-pvc   Bound    pvc-f8c5bba8-1ee9-4a31-91a0-0ae08ba828d8   1Gi        RWO            standard       22m
 user@test:~/otus/kubernetes-volumes$ kubectl describe pvc homework-pvc -n homework
