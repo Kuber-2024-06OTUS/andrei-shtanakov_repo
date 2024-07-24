@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homework-deployment
+  namespace: homework
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: homework-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: homework-pod
+    spec:
+      serviceAccountName: monitoring
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: homework-pvc
+        - name: nginx-config
+          configMap:
+            name: nginx-config
+        - name: homework-config
+          configMap:
+            name: homework-configmap
+      initContainers:
+        - name: init-container
+          image: busybox
+          command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /homework
+      containers:
+        - name: web-server
+          image: nginx
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /homework
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d
+            - name: homework-config
+              mountPath: /homework/conf
+          readinessProbe:
+            exec:
+              command: ["test", "-f", "/homework/index.html"]
+            initialDelaySeconds: 5
+            periodSeconds: 5
+        - name: metrics-container
+          image: curlimages/curl
+          command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /homework
+
