@@ -1,0 +1,17 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: homework-monitor
+  namespace: homework
+  labels:
+    release: prometheus  # Это может потребоваться для обнаружения Prometheus Operator
+spec:
+  selector:
+    matchLabels:
+      app: homework-pod
+  namespaceSelector:
+    matchNames:
+    - homework
+  endpoints:
+  - port: web
+    path: /metrics
