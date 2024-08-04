@@ -66,3 +66,10 @@ containers:
     command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
 
 # Keep the rest of the existing values as they are
+
+serviceMonitor:
+  name: homework-servicemonitor
+  endpoints:
+    - port: metrics
+      interval: 15s
+      path: /metrics
