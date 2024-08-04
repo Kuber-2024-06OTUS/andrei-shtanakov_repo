@@ -82,3 +82,12 @@ service:
       targetPort: 80
       protocol: TCP
       name: http
+
+storageClass:
+  name: homework-storage
+  provisioner: kubernetes.io/no-provisioner
+  parameters:
+    type: pd-standard
+  reclaimPolicy: Retain
+  volumeBindingMode: WaitForFirstConsumer
+  allowVolumeExpansion: true
