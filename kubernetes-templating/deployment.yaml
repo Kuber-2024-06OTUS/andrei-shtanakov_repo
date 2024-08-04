@@ -1,62 +1,62 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: homework-deployment
-  namespace: homework
+  name: {{ .Values.deployment.name }}
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 3
+  replicas: {{ .Values.deployment.replicas }}
   selector:
     matchLabels:
-      app: homework-pod
+      app: {{ .Values.deployment.app }}
   strategy:
-    type: RollingUpdate
+    type: {{ .Values.deployment.strategy.type }}
     rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+      maxUnavailable: {{ .Values.deployment.strategy.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.deployment.strategy.rollingUpdate.maxSurge }}
   template:
     metadata:
       labels:
-        app: homework-pod
+        app: {{ .Values.deployment.app }}
     spec:
-      serviceAccountName: monitoring
+      serviceAccountName: {{ .Values.serviceAccount.name }}
       volumes:
         - name: shared-volume
           persistentVolumeClaim:
-            claimName: homework-pvc
+            claimName: {{ .Values.pvc.name }}
         - name: nginx-config
           configMap:
-            name: nginx-config
+            name: {{ .Values.configMap.nginx }}
         - name: homework-config
           configMap:
-            name: homework-configmap
+            name: {{ .Values.configMap.homework }}
       initContainers:
-        - name: init-container
-          image: busybox
-          command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
+        - name: {{ .Values.initContainers.name }}
+          image: {{ .Values.initContainers.image }}
+          command: {{ .Values.initContainers.command }}
           volumeMounts:
             - name: shared-volume
-              mountPath: /homework
+              mountPath: {{ .Values.volumeMounts.sharedVolume }}
       containers:
-        - name: web-server
-          image: nginx
+        - name: {{ .Values.containers.webServer.name }}
+          image: {{ .Values.containers.webServer.image }}
           ports:
-            - containerPort: 80
+            - containerPort: {{ .Values.containers.webServer.port }}
           volumeMounts:
             - name: shared-volume
-              mountPath: /homework
+              mountPath: {{ .Values.volumeMounts.sharedVolume }}
             - name: nginx-config
-              mountPath: /etc/nginx/conf.d
+              mountPath: {{ .Values.volumeMounts.nginxConfig }}
             - name: homework-config
-              mountPath: /homework/conf
+              mountPath: {{ .Values.volumeMounts.homeworkConfig }}
           readinessProbe:
             exec:
-              command: ["test", "-f", "/homework/index.html"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-        - name: metrics-container
-          image: curlimages/curl
-          command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
+              command: {{ .Values.containers.webServer.readinessProbe.command }}
+            initialDelaySeconds: {{ .Values.containers.webServer.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.containers.webServer.readinessProbe.periodSeconds }}
+        - name: {{ .Values.containers.metricsContainer.name }}
+          image: {{ .Values.containers.metricsContainer.image }}
+          command: {{ .Values.containers.metricsContainer.command }}
           volumeMounts:
             - name: shared-volume
-              mountPath: /homework
+              mountPath: {{ .Values.volumeMounts.sharedVolume }}
 

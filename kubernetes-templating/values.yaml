@@ -2,130 +2,48 @@
 
 namespace: homework
 
-# ingress *****************************************************
-
-host: homework.otus
-tlsSecretName: homework-tls
-serviceName: homework-service
-servicePort: 80
-paths:
-  homepage:
-    path: /homepage
-    pathType: Prefix
-  metrics:
-    path: /metrics
-    pathType: ImplementationSpecific
-  root:
-    path: /
-    pathType: Prefix
-
-#  nginx-config *****************************************************
-serverName: localhost
-rootPath: /homework
-indexFiles: "index.html index.htm"
-# cd-sa *****************************************************
-
-serviceAccountName: cd
-roleBindingName: cd-admin
-clusterRoleName: admin
-
-# pvc *****************************************************
-pvc:
-  name: homework-pvc
-  accessMode: ReadWriteOnce
-  storageClassName: homework-storage
-  storage: 1Gi
-
-# storageClass *****************************************************
-storageClass:
-  name: homework-storage
-  provisioner: k8s.io/minikube-hostpath
-  reclaimPolicy: Retain
-
-
-
-replicaCount: 3
-
-image:
-  repository: nginx
-  pullPolicy: IfNotPresent
-  tag: ""
-
-nameOverride: ""
-fullnameOverride: ""
+deployment:
+  name: homework-deployment
+  replicas: 3
+  app: homework-pod
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
 
 serviceAccount:
-  create: true
-  name: "monitoring"
+  name: monitoring
 
-podAnnotations: {}
+pvc:
+  name: homework-pvc
 
-podSecurityContext: {}
+configMap:
+  nginx: nginx-config
+  homework: homework-configmap
 
-securityContext: {}
-
-service:
-  type: NodePort
-  port: 80
-
-ingress:
-  enabled: true
-  className: "nginx"
-  annotations: {}
-  hosts:
-    - host: homework.otus
-      paths:
-        - path: /
-          pathType: Prefix
-  tls:
-   - secretName: homework-tls
-     hosts:
-       - homework.otus
-
-resources: {}
-
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
-
-probes:
-  readiness:
-    enabled: true
-    initialDelaySeconds: 5
-    periodSeconds: 5
-
-serviceMonitor:
-  enabled: true
-  labels:
-    release: prometheus
+volumeMounts:
+  sharedVolume: /homework
+  nginxConfig: /etc/nginx/conf.d
+  homeworkConfig: /homework/conf
 
 initContainers:
-  enabled: true
+  name: init-container
   image: busybox
   command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
 
-metricsContainer:
-  enabled: true
-  image:
-    repository: curlimages/curl
-    tag: latest
-  command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
+containers:
+  webServer:
+    name: web-server
+    image: nginx
+    port: 80
+    readinessProbe:
+      command: ["test", "-f", "/homework/index.html"]
+      initialDelaySeconds: 5
+      periodSeconds: 5
+  metricsContainer:
+    name: metrics-container
+    image: curlimages/curl
+    command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
 
-deployment:
-  name: nginx-deployment
-  replicas: 3
-  app: nginx
-
-container:
-  name: nginx
-  image: nginx:1.14.2
-  port: 80
+# Keep the rest of the existing values as they are
