@@ -35,8 +35,11 @@ pvc:
   name: homework-pvc
 
 configMap:
-  nginx: nginx-config
-  homework: homework-configmap
+  name: homework-configmap
+  data:
+    NGINX_CONFIG: nginx-config
+    HOMEWORK_CONFIG: homework-configmap
+    # Add any additional key-value pairs here
 
 volumeMounts:
   sharedVolume: /homework
