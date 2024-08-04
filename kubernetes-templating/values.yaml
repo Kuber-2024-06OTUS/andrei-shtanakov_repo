@@ -120,3 +120,12 @@ metricsContainer:
     tag: latest
   command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
 
+deployment:
+  name: nginx-deployment
+  replicas: 3
+  app: nginx
+
+container:
+  name: nginx
+  image: nginx:1.14.2
+  port: 80
