@@ -14,7 +14,22 @@ deployment:
 
 serviceAccount:
   name: monitoring
-  # Add any additional ServiceAccount configurations here if needed
+
+clusterRole:
+  name: metrics-reader
+  rules:
+    - nonResourceURLs:
+      - "/metrics"
+      - "/healthz"
+      - "/livez"
+      - "/readyz"
+      verbs: ["get"]
+    - apiGroups: [""]
+      resources: ["nodes", "pods", "services"]
+      verbs: ["get", "list", "watch"]
+
+clusterRoleBinding:
+  name: monitoring-metrics-reader
 
 pvc:
   name: homework-pvc
