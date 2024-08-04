@@ -14,6 +14,7 @@ deployment:
 
 serviceAccount:
   name: monitoring
+  # Add any additional ServiceAccount configurations here if needed
 
 pvc:
   name: homework-pvc
