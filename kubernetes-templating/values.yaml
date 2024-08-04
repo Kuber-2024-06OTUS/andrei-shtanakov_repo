@@ -73,3 +73,12 @@ serviceMonitor:
     - port: metrics
       interval: 15s
       path: /metrics
+
+service:
+  name: homework-service
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http
