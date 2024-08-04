@@ -1,0 +1,122 @@
+# Default values for my-app.
+
+namespace: homework
+
+# ingress *****************************************************
+
+host: homework.otus
+tlsSecretName: homework-tls
+serviceName: homework-service
+servicePort: 80
+paths:
+  homepage:
+    path: /homepage
+    pathType: Prefix
+  metrics:
+    path: /metrics
+    pathType: ImplementationSpecific
+  root:
+    path: /
+    pathType: Prefix
+
+#  nginx-config *****************************************************
+serverName: localhost
+rootPath: /homework
+indexFiles: "index.html index.htm"
+# cd-sa *****************************************************
+
+serviceAccountName: cd
+roleBindingName: cd-admin
+clusterRoleName: admin
+
+# pvc *****************************************************
+pvc:
+  name: homework-pvc
+  accessMode: ReadWriteOnce
+  storageClassName: homework-storage
+  storage: 1Gi
+
+# storageClass *****************************************************
+storageClass:
+  name: homework-storage
+  provisioner: k8s.io/minikube-hostpath
+  reclaimPolicy: Retain
+
+
+
+replicaCount: 3
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: "monitoring"
+
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: NodePort
+  port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: homework.otus
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+   - secretName: homework-tls
+     hosts:
+       - homework.otus
+
+resources: {}
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+
+probes:
+  readiness:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+serviceMonitor:
+  enabled: true
+  labels:
+    release: prometheus
+
+initContainers:
+  enabled: true
+  image: busybox
+  command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
+
+metricsContainer:
+  enabled: true
+  image:
+    repository: curlimages/curl
+    tag: latest
+  command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
+
