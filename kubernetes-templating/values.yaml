@@ -40,3 +40,13 @@ serviceMonitor:
     - port: additional-metrics
       interval: 30s
       path: /metrics
+
+storageClass:
+  name: standard
+  provisioner: kubernetes.io/gce-pd
+  parameters:
+    type: pd-standard
+    fstype: ext4
+  reclaimPolicy: Delete
+  volumeBindingMode: Immediate
+  allowVolumeExpansion: true
