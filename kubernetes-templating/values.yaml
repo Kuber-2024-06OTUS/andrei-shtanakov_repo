@@ -12,3 +12,9 @@ configMap:
     key1: value1
     key2: value2
     # Add more key-value pairs as needed
+
+serviceAccount:
+  name: monitoring-sa
+  namespace: default
+  annotations: {}
+    # kubernetes.io/enforce-mountable-secrets: "true"
