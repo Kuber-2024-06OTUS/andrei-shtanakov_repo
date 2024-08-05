@@ -13,7 +13,9 @@ configMap:
   data:
     key1: value1
     key2: value2
-    # Add more key-value pairs as needed
+    file: |
+      This is a sample file content
+      that will be accessible via /conf/fil
 
 configMaps:
   nginxConfig: "{{ .Release.Name }}-nginx-config"
@@ -93,26 +95,3 @@ persistentVolumeClaim:
   volumeMode: Filesystem
   storage: 1Gi
   storageClassName: standard
-
-configMap:
-  name: my-configmap
-  data:
-    key1: value1
-    key2: value2
-    # Add more key-value pairs as needed
-
-cdSa:
-  clusterRole:
-    name: cd-role
-    rules:
-      - apiGroups: [""]
-        resources: ["pods", "services", "secrets", "configmaps"]
-        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-      - apiGroups: ["apps"]
-        resources: ["deployments", "statefulsets"]
-        verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
-  clusterRoleBinding:
-    name: cd-role-binding
-  serviceAccount:
-    name: cd-sa
-    namespace: default
