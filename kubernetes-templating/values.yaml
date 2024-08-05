@@ -93,3 +93,10 @@ persistentVolumeClaim:
   volumeMode: Filesystem
   storage: 1Gi
   storageClassName: standard
+
+configMap:
+  name: my-configmap
+  data:
+    key1: value1
+    key2: value2
+    # Add more key-value pairs as needed
