@@ -43,10 +43,41 @@ serviceMonitor:
 
 storageClass:
   name: standard
-  provisioner: kubernetes.io/gce-pd
+  provisioner: k8s.io/minikube-hostpath
   parameters:
     type: pd-standard
     fstype: ext4
-  reclaimPolicy: Delete
+  reclaimPolicy: Retain
   volumeBindingMode: Immediate
   allowVolumeExpansion: true
+
+initContainers:
+  - name: init-container
+    image: busybox
+    command: ['sh', '-c', 'echo "<html><body><h1>Hello, World!</h1></body></html>" > /homework/index.html']
+    mountPath: /homework
+
+webServerContainer:
+  - name: web-server
+    image: nginx
+    ports:
+      - containerPort: 80
+    volumeMounts:
+      - name: shared-volume
+        mountPath: /homework
+      - name: nginx-config
+        mountPath: /etc/nginx/conf.d
+      - name: homework-config
+        mountPath: /homework/conf
+    readinessProbe:
+      exec:
+        command: ["test", "-f", "/homework/index.html"]
+      initialDelaySeconds: 5
+      periodSeconds: 5
+metricsContainer:
+  - name: metrics-container
+    image: curlimages/curl
+    command: ['sh', '-c', 'while true; do curl -s http://localhost/metrics > /homework/metrics; sleep 60; done']
+    volumeMounts:
+      - name: shared-volume
+        mountPath: /homework
