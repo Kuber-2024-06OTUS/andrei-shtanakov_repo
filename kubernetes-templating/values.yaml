@@ -81,3 +81,28 @@ metricsContainer:
     volumeMounts:
       - name: shared-volume
         mountPath: /homework
+
+vpc:
+  name: default-network-policy
+  podSelector:
+    matchLabels:
+      app: myapp
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              role: frontend
+      ports:
+        - protocol: TCP
+          port: 80
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              role: backend
+      ports:
+        - protocol: TCP
+          port: 5432
