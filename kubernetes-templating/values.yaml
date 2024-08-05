@@ -5,7 +5,9 @@ image:
   tag: latest
 
 service:
+  type: ClusterIP
   port: 80
+  targetPort: 80
 
 configMap:
   data:
