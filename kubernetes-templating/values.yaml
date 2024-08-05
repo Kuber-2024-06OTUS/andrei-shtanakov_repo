@@ -18,3 +18,9 @@ serviceAccount:
   namespace: default
   annotations: {}
     # kubernetes.io/enforce-mountable-secrets: "true"
+
+namespace:
+  name: my-namespace
+  labels:
+    environment: development
+    # Add more labels as needed
