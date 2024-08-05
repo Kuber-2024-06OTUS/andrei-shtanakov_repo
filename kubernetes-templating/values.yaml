@@ -24,3 +24,17 @@ namespace:
   labels:
     environment: development
     # Add more labels as needed
+
+serviceMonitor:
+  name: my-service-monitor
+  labels:
+    release: prometheus
+  selector:
+    app: my-app
+  namespace: my-namespace
+  endpoints:
+    - port: http-metrics
+      interval: 15s
+    - port: additional-metrics
+      interval: 30s
+      path: /metrics

@@ -2,16 +2,22 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: {{ .Values.serviceMonitor.name }}
-  namespace: {{ .Values.namespace }}
+  {{- with .Values.serviceMonitor.labels }}
   labels:
-    {{- include "common.labels" . | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   selector:
     matchLabels:
-      {{- include "common.selectorLabels" . | nindent 6 }}
+      {{- toYaml .Values.serviceMonitor.selector | nindent 6 }}
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.serviceMonitor.namespace }}
   endpoints:
   {{- range .Values.serviceMonitor.endpoints }}
   - port: {{ .port }}
     interval: {{ .interval }}
+    {{- if .path }}
     path: {{ .path }}
+    {{- end }}
   {{- end }}
