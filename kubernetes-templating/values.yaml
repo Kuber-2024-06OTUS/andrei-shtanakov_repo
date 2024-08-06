@@ -128,4 +128,12 @@ cdSa:
   clusterRoleBinding:                                                                                                                                  
     name:  monitoring-metrics-reader   
     namespace: default
+
+webhook:
+  caBundle: ""  # This should be filled with the actual CA bundle
+  replicaCount: 1
+  image:
+    repository: your-webhook-image-repository
+    tag: latest
+    pullPolicy: IfNotPresent
   

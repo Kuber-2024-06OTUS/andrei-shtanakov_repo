@@ -1,0 +1,65 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: {{ .Release.Name }}-webhook
+webhooks:
+  - name: {{ .Release.Name }}.{{ .Release.Namespace }}.svc
+    clientConfig:
+      service:
+        name: {{ .Release.Name }}-webhook
+        namespace: {{ .Release.Namespace }}
+        path: "/validate"
+      caBundle: {{ .Values.webhook.caBundle | quote }}
+    rules:
+      - apiGroups: [""]
+        apiVersions: ["v1"]
+        operations: ["CREATE"]
+        resources: ["pods"]
+        scope: "Namespaced"
+    admissionReviewVersions: ["v1"]
+    sideEffects: None
+    timeoutSeconds: 5
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-webhook
+  namespace: {{ .Release.Namespace }}
+spec:
+  selector:
+    app: {{ .Release.Name }}-webhook
+  ports:
+    - port: 443
+      targetPort: 8443
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-webhook
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.webhook.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}-webhook
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}-webhook
+    spec:
+      containers:
+        - name: webhook
+          image: {{ .Values.webhook.image.repository }}:{{ .Values.webhook.image.tag }}
+          imagePullPolicy: {{ .Values.webhook.image.pullPolicy }}
+          ports:
+            - containerPort: 8443
+          volumeMounts:
+            - name: webhook-certs
+              mountPath: /etc/webhook/certs
+              readOnly: true
+      volumes:
+        - name: webhook-certs
+          secret:
+            secretName: {{ .Release.Name }}-webhook-certs
