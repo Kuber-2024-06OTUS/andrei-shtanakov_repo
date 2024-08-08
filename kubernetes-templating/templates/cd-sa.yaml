@@ -1,0 +1,22 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.cdSa.serviceAccount.name }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.cdSa.RoleBinding.name }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.cdSa.serviceAccount.name }}
+  namespace: {{ .Values.namespace.name | default .Release.Namespace }}
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io
+

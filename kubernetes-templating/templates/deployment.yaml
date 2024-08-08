@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+      {{- include "common.selectorLabels" . | nindent 4 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+        {{- include "common.labels" . | nindent 4 }}
+    spec:
+      serviceAccountName: {{ .Values.serviceAccount.name }}
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: {{ .Values.persistentVolumeClaim.name }}
+        - name: nginx-config
+          configMap:
+            name: {{ .Values.configMaps.nginxConfig }}
+        - name: homework-config
+          configMap:
+            name: {{ .Values.configMaps.homeworkConfig }}
+      initContainers:
+      {{- range .Values.initContainers }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          command: {{ .command | toYaml | nindent 12 }}
+          volumeMounts:
+            - name: shared-volume
+              mountPath: {{ .mountPath }}
+      {{- end }}
+      containers:
+      {{- with index .Values.webServerContainer 0 }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          ports:
+          {{- range .ports }}
+            - containerPort: {{ .containerPort }}
+          {{- end }}
+          volumeMounts:
+          {{- range .volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+          readinessProbe:
+            httpGet:
+              path: {{ .readinessProbe.httpGet.path }}
+              port: {{ .readinessProbe.httpGet.port }}
+            initialDelaySeconds: {{ .readinessProbe.initialDelaySeconds }}
+            timeoutSeconds: {{ .readinessProbe.timeoutSeconds }}
+            periodSeconds: {{ .readinessProbe.periodSeconds }}
+            successThreshold: {{ .readinessProbe.successThreshold }}
+            failureThreshold: {{ .readinessProbe.failureThreshold }}
+      {{- end }}
+      {{- with index .Values.metricsContainer 0 }}
+        - name: {{ .name }}
+          image: {{ .image }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              while true; do
+                curl -s http://localhost/metrics > /dev/null || echo "Failed to fetch metrics"
+                sleep 60
+              done
+          volumeMounts:
+          {{- range .volumeMounts }}
+            - name: {{ .name }}
+              mountPath: {{ .mountPath }}
+          {{- end }}
+      {{- end }}
