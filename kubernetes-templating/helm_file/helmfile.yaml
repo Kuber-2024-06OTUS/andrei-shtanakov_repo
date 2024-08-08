@@ -1,0 +1,50 @@
+releases:
+  - name: kafka-prod
+    namespace: prod
+    chart: bitnami/kafka
+    version: ~26.0.0
+    values:
+      - controller:
+          replicaCount: 5  # Уменьшим до 3 для начала
+        broker:
+          replicaCount: 0
+        image:
+          tag: 3.6.0  # Обновим версию Kafka до соответствующей версии чарта
+        auth:
+          clientProtocol: sasl
+          interBrokerProtocol: sasl
+        sasl:
+          enabledMechanisms: "plain"
+          interBrokerMechanism: plain
+          controllerMechanism: plain
+        plaintext:
+          enabled: false
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+          size: 1Gi
+        livenessProbe:
+          initialDelaySeconds: 120
+        readinessProbe:
+          initialDelaySeconds: 120
+        
+  - name: kafka-dev
+    namespace: dev
+    chart: bitnami/kafka
+    version: ~26.0.0
+    values:
+      - controller:
+          replicaCount: 1
+        broker:
+          replicaCount: 0
+        auth:
+          clientProtocol: plaintext
+          interBrokerProtocol: plaintext
+        sasl:
+          enabled: false
+        plaintext:
+          enabled: true
+        persistence:
+          enabled: true
+          storageClass: "local-path"
+          size: 1Gi

@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMaps.nginxConfig }}
+data:
+  nginx.conf: |
+    server {
+        listen 80;
+        server_name localhost;
+
+        location /metrics {
+            stub_status on;
+            access_log off;
+        }
+
+        location / {
+            root /homework;
+            index index.html index.htm;
+        }
+    }

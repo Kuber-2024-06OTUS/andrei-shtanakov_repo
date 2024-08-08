@@ -3,8 +3,4 @@ kind: StorageClass
 metadata:
   name: {{ .Values.storageClass.name }}
 provisioner: {{ .Values.storageClass.provisioner }}
-parameters:
-  {{- toYaml .Values.storageClass.parameters | nindent 2 }}
 reclaimPolicy: {{ .Values.storageClass.reclaimPolicy }}
-volumeBindingMode: {{ .Values.storageClass.volumeBindingMode }}
-allowVolumeExpansion: {{ .Values.storageClass.allowVolumeExpansion }}

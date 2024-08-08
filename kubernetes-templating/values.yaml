@@ -1,8 +1,27 @@
 replicaCount: 3
 
-image:
-  repository: nginx
-  tag: latest
+#image:
+#  repository: nginx
+#  tag: latest
+
+Ingress:
+  name: homework-ingress
+  namespace: homework
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  tls:
+    hosts:
+      - homework.otus
+    secretName: homework-tls
+  rules:
+    - host: homework.otus
+      paths:
+        - path: /homepage
+          pathType: Prefix
+        - path: /metrics
+          pathType: ImplementationSpecific
+        - path: /
+          pathType: Prefix
 
 service:
   type: ClusterIP
@@ -17,21 +36,18 @@ configMap:
       This is a sample file content
       that will be accessible via /conf/fil
 
-#configMaps:
-#  nginxConfig: "{{ .Release.Name }}-nginx-config"
-#  homeworkConfig: "{{ .Release.Name }}-configmap"
 configMaps:
   nginxConfig: "nginx-config"
   homeworkConfig: "homework-config"
 
 serviceAccount:
   name: monitoring-sa
-  namespace: default
+  namespace: homework
   annotations: {}
     # kubernetes.io/enforce-mountable-secrets: "true"
 
 namespace:
-  name: my-namespace
+  name: homework
   labels:
     environment: development
     # Add more labels as needed
@@ -42,7 +58,7 @@ serviceMonitor:
     release: prometheus
   selector:
     app: my-app
-  namespace: my-namespace
+  namespace: homework
   endpoints:
     - port: http-metrics
       interval: 15s
@@ -99,7 +115,7 @@ metricsContainer:
 
 persistentVolumeClaim:
   name: my-pvc
-  namespace: default
+  namespace: homework
   accessModes:
     - ReadWriteOnce
   volumeMode: Filesystem
@@ -109,13 +125,13 @@ persistentVolumeClaim:
 cdSa:                                                                                                                                                  
   serviceAccount:                                                                                                                                      
     name: cd                                                                                                                                        
-    namespace: default
+    namespace: homework
   RoleBinding:
     name: cd-admin                                                                                                                                        
-    namespace: default
+    namespace: homework
   monitoringRole:
     name: monitoring
-    namespace: default
+    namespace: homework
   metricsReaderRole:
     name: metrics-reader
     rules:
@@ -127,13 +143,9 @@ cdSa:
         verbs: ["get", "list", "watch"]
   clusterRoleBinding:                                                                                                                                  
     name:  monitoring-metrics-reader   
-    namespace: default
+    namespace: homework
 
 webhook:
-  caBundle: ""  # This should be filled with the actual CA bundle
-  replicaCount: 1
-  image:
-    repository: your-webhook-image-repository
-    tag: latest
-    pullPolicy: IfNotPresent
+  name: validate.nginx.ingress.kubernetes.io
+
   
